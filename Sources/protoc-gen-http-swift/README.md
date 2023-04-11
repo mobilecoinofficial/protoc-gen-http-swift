@@ -1,4 +1,4 @@
-# Swift gRPC Plugin
+# Swift protoc-gen-http-swift Plugin
 
 This directory contains the Swift gRPC plugin for `protoc`,
 the Protocol Buffer Compiler.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, gRPC Authors All rights reserved.
+ * Copyright 2023, MobileCoin Authors All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ import Foundation
 import PackagePlugin
 
 @main
-struct GRPCSwiftPlugin: BuildToolPlugin {
-  /// Errors thrown by the `GRPCSwiftPlugin`
+struct HTTPSwiftPlugin: BuildToolPlugin {
+  /// Errors thrown by the `HTTPSwiftPlugin`
   enum PluginError: Error {
     /// Indicates that the target where the plugin was applied to was not `SourceModuleTarget`.
     case invalidTarget
@@ -63,11 +63,11 @@ struct GRPCSwiftPlugin: BuildToolPlugin {
     /// If this is not set, SPM will try to find the tool itself.
     var protocPath: String?
 
-    /// A list of invocations of `protoc` with the `GRPCSwiftPlugin`.
+    /// A list of invocations of `protoc` with the `HTTPSwiftPlugin`.
     var invocations: [Invocation]
   }
 
-  static let configurationFileName = "grpc-swift-config.json"
+  static let configurationFileName = "http-swift-config.json"
 
   func createBuildCommands(context: PluginContext, target: Target) throws -> [Command] {
     // Let's check that this is a source target
@@ -87,7 +87,7 @@ struct GRPCSwiftPlugin: BuildToolPlugin {
       importPaths.append(contentsOf: configuredImportPaths.map { Path($0) })
     }
 
-    // We need to find the path of protoc and protoc-gen-grpc-swift
+    // We need to find the path of protoc and protoc-gen-http-swift
     let protocPath: Path
     if let configuredProtocPath = configuration.protocPath {
       protocPath = Path(configuredProtocPath)
@@ -98,7 +98,7 @@ struct GRPCSwiftPlugin: BuildToolPlugin {
       // The user didn't set anything so let's try see if SPM can find a binary for us
       protocPath = try context.tool(named: "protoc").path
     }
-    let protocGenGRPCSwiftPath = try context.tool(named: "protoc-gen-grpc-swift").path
+    let protocGenHTTPSwiftPath = try context.tool(named: "protoc-gen-http-swift").path
 
     // This plugin generates its output into GeneratedSources
     let outputDirectory = context.pluginWorkDirectory
@@ -108,7 +108,7 @@ struct GRPCSwiftPlugin: BuildToolPlugin {
         target: target,
         invocation: invocation,
         protocPath: protocPath,
-        protocGenGRPCSwiftPath: protocGenGRPCSwiftPath,
+        protocGenHTTPSwiftPath: protocGenHTTPSwiftPath,
         outputDirectory: outputDirectory,
         importPaths: importPaths
       )
@@ -129,14 +129,14 @@ struct GRPCSwiftPlugin: BuildToolPlugin {
     target: Target,
     invocation: Configuration.Invocation,
     protocPath: Path,
-    protocGenGRPCSwiftPath: Path,
+    protocGenHTTPSwiftPath: Path,
     outputDirectory: Path,
     importPaths: [Path]
   ) -> Command {
     // Construct the `protoc` arguments.
     var protocArgs = [
-      "--plugin=protoc-gen-grpc-swift=\(protocGenGRPCSwiftPath)",
-      "--grpc-swift_out=\(outputDirectory)",
+      "--plugin=protoc-gen-http-swift=\(protocGenHTTPSwiftPath)",
+      "--http-swift_out=\(outputDirectory)",
     ]
 
     importPaths.forEach { path in
@@ -145,19 +145,19 @@ struct GRPCSwiftPlugin: BuildToolPlugin {
     }
 
     if let visibility = invocation.visibility {
-      protocArgs.append("--grpc-swift_opt=Visibility=\(visibility.rawValue.capitalized)")
+      protocArgs.append("--http-swift_opt=Visibility=\(visibility.rawValue.capitalized)")
     }
 
     if let generateServerCode = invocation.server {
-      protocArgs.append("--grpc-swift_opt=Server=\(generateServerCode)")
+      protocArgs.append("--http-swift_opt=Server=\(generateServerCode)")
     }
 
     if let generateClientCode = invocation.client {
-      protocArgs.append("--grpc-swift_opt=Client=\(generateClientCode)")
+      protocArgs.append("--http-swift_opt=Client=\(generateClientCode)")
     }
 
     if let keepMethodCasingOption = invocation.keepMethodCasing {
-      protocArgs.append("--grpc-swift_opt=KeepMethodCasing=\(keepMethodCasingOption)")
+      protocArgs.append("--http-swift_opt=KeepMethodCasing=\(keepMethodCasingOption)")
     }
 
     var inputFiles = [Path]()
@@ -172,7 +172,7 @@ struct GRPCSwiftPlugin: BuildToolPlugin {
       // We validated in the beginning that every file has the suffix of .proto
       // This means we can just drop the last 5 elements and append the new suffix
       file.removeLast(5)
-      file.append("grpc.swift")
+      file.append("http.swift")
       let protobufOutputPath = outputDirectory.appending(file)
 
       // Add the outputPath as an output file
@@ -183,10 +183,10 @@ struct GRPCSwiftPlugin: BuildToolPlugin {
     // system know when to invoke the command. The output paths are passed on to
     // the rule engine in the build system.
     return Command.buildCommand(
-      displayName: "Generating gRPC Swift files from proto files",
+      displayName: "Generating HTTP Swift files from proto files",
       executable: protocPath,
       arguments: protocArgs,
-      inputFiles: inputFiles + [protocGenGRPCSwiftPath],
+      inputFiles: inputFiles + [protocGenHTTPSwiftPath],
       outputFiles: outputFiles
     )
   }
