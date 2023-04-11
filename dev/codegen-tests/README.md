@@ -12,7 +12,7 @@ test directory must contain the following files/directories:
   the golden output
 
 The tests also require that the absolute path of the plugin is set in the
-`PROTOC_GEN_GRPC_SWIFT` environment variable.
+`PROTOC_GEN_HTTP_SWIFT` environment variable.
 
 ## Running the Tests
 

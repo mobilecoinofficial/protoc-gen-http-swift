@@ -6,7 +6,7 @@
 
 #### Swift Version
 
-Tequires Swift 5.0 or higher.
+Requires Swift 5.0 or higher.
 
 #### Install Protocol Buffers v3
 
