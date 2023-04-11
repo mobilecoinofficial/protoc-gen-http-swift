@@ -26,29 +26,8 @@ extension Generator {
       self.printClientProtocolExtension()
       self.println()
       self.printClassBackedServiceClientImplementation()
-//      self.println()
-//      self.printStructBackedServiceClientImplementation()
-//      self.println()
-//      self.printIfCompilerGuardForAsyncAwait()
-//      self.printAsyncServiceClientProtocol()
-//      self.println()
-//      self.printAsyncClientProtocolExtension()
-//      self.println()
-//      self.printAsyncClientProtocolSafeWrappersExtension()
-//      self.println()
-//      self.printAsyncServiceClientImplementation()
-//      self.println()
-//      self.printEndCompilerGuardForAsyncAwait()
-//      self.println()
-//      // Both implementations share definitions for interceptors and metadata.
-//      self.printServiceClientInterceptorFactoryProtocol()
       self.println()
       self.printClientMetadata()
-    }
-
-    if self.options.generateTestClient {
-      self.println()
-      self.printTestClient()
     }
   }
 
@@ -123,7 +102,6 @@ extension Generator {
     self.println("\(self.access) protocol \(self.clientProtocolName): HTTPClient {")
     self.withIndentation {
       self.println("var serviceName: String { get }")
-//      self.println("var interceptors: \(self.clientInterceptorProtocolName)? { get }")
 
       for method in service.methods {
         self.println()
@@ -158,62 +136,8 @@ extension Generator {
     self.println("}")
   }
 
-  private func printServiceClientInterceptorFactoryProtocol() {
-    self.println("\(self.access) protocol \(self.clientInterceptorProtocolName): GRPCSendable {")
-    self.withIndentation {
-      // Method specific interceptors.
-      for method in service.methods {
-        self.println()
-        self.method = method
-        self.println(
-          "/// - Returns: Interceptors to use when invoking '\(self.methodFunctionName)'."
-        )
-        // Skip the access, we're defining a protocol.
-        self.printMethodInterceptorFactory(access: nil)
-      }
-    }
-    self.println("}")
-  }
-
-  private func printMethodInterceptorFactory(
-    access: String?,
-    bodyBuilder: (() -> Void)? = nil
-  ) {
-    self.printFunction(
-      name: self.methodInterceptorFactoryName,
-      arguments: [],
-      returnType: "[ClientInterceptor<\(self.methodInputName), \(self.methodOutputName)>]",
-      access: access,
-      bodyBuilder: bodyBuilder
-    )
-  }
-
   private func printClassBackedServiceClientImplementation() {
     println("\(access) final class \(clientClassName): \(clientProtocolName) {")
-    self.withIndentation {
-      println("\(access) var defaultHTTPCallOptions: HTTPCallOptions")
-      println()
-      println("/// Creates a client for the \(servicePath) service.")
-      println("///")
-      self.printParameters()
-      println(
-        "///   - defaultHTTPCallOptions: Options to use for each service call if the user doesn't provide them."
-      )
-      println("\(access) init(")
-      self.withIndentation {
-        println("defaultHTTPCallOptions: HTTPCallOptions = HTTPCallOptions()")
-      }
-      self.println(") {")
-      self.withIndentation {
-        println("self.defaultHTTPCallOptions = defaultHTTPCallOptions")
-      }
-      self.println("}")
-    }
-    println("}")
-  }
-
-  private func printStructBackedServiceClientImplementation() {
-    println("\(access) struct \(clientStructName): \(clientProtocolName) {")
     self.withIndentation {
       println("\(access) var defaultHTTPCallOptions: HTTPCallOptions")
       println()
@@ -244,15 +168,6 @@ extension Generator {
       switch self.streamType {
       case .unary:
         self.printUnaryCall()
-
-      case .serverStreaming:
-        self.printServerStreamingCall()
-
-      case .clientStreaming:
-        self.printClientStreamingCall()
-
-      case .bidirectionalStreaming:
-        self.printBidirectionalStreamingCall()
       }
     }
   }
@@ -280,98 +195,6 @@ extension Generator {
     }
   }
 
-  private func printServerStreamingCall() {
-    self.println(self.method.documentation(streamingType: self.streamType), newline: false)
-    self.println("///")
-    self.printParameters()
-    self.printRequestParameter()
-    self.printCallOptionsParameter()
-    self.printHandlerParameter()
-    self.println("/// - Returns: A `ServerStreamingCall` with futures for the metadata and status.")
-    self.printFunction(
-      name: self.methodFunctionName,
-      arguments: self.methodArguments,
-      returnType: self.methodReturnType,
-      access: self.access
-    ) {
-      self.println("return self.makeServerStreamingCall(")
-      self.withIndentation {
-        self.println("path: \(self.methodPathUsingClientMetadata),")
-        self.println("request: request,")
-        self.println("callOptions: callOptions ?? self.defaultCallOptions,")
-        self.println(
-          "interceptors: self.interceptors?.\(self.methodInterceptorFactoryName)() ?? [],"
-        )
-        self.println("handler: handler")
-      }
-      self.println(")")
-    }
-  }
-
-  private func printClientStreamingCall() {
-    self.println(self.method.documentation(streamingType: self.streamType), newline: false)
-    self.println("///")
-    self.printClientStreamingDetails()
-    self.println("///")
-    self.printParameters()
-    self.printCallOptionsParameter()
-    self
-      .println(
-        "/// - Returns: A `ClientStreamingCall` with futures for the metadata, status and response."
-      )
-    self.printFunction(
-      name: self.methodFunctionName,
-      arguments: self.methodArguments,
-      returnType: self.methodReturnType,
-      access: self.access
-    ) {
-      self.println("return self.makeClientStreamingCall(")
-      self.withIndentation {
-        self.println("path: \(self.methodPathUsingClientMetadata),")
-        self.println("callOptions: callOptions ?? self.defaultCallOptions,")
-        self.println(
-          "interceptors: self.interceptors?.\(self.methodInterceptorFactoryName)() ?? []"
-        )
-      }
-      self.println(")")
-    }
-  }
-
-  private func printBidirectionalStreamingCall() {
-    self.println(self.method.documentation(streamingType: self.streamType), newline: false)
-    self.println("///")
-    self.printClientStreamingDetails()
-    self.println("///")
-    self.printParameters()
-    self.printCallOptionsParameter()
-    self.printHandlerParameter()
-    self.println("/// - Returns: A `ClientStreamingCall` with futures for the metadata and status.")
-    self.printFunction(
-      name: self.methodFunctionName,
-      arguments: self.methodArguments,
-      returnType: self.methodReturnType,
-      access: self.access
-    ) {
-      self.println("return self.makeBidirectionalStreamingCall(")
-      self.withIndentation {
-        self.println("path: \(self.methodPathUsingClientMetadata),")
-        self.println("callOptions: callOptions ?? self.defaultCallOptions,")
-        self.println(
-          "interceptors: self.interceptors?.\(self.methodInterceptorFactoryName)() ?? [],"
-        )
-        self.println("handler: handler")
-      }
-      self.println(")")
-    }
-  }
-
-  private func printClientStreamingDetails() {
-    println("/// Callers should use the `send` method on the returned object to send messages")
-    println(
-      "/// to the server. The caller should send an `.end` after the final message has been sent."
-    )
-  }
-
   private func printParameters() {
     println("/// - Parameters:")
   }
@@ -396,11 +219,8 @@ extension Generator {
 
       self.method = method
       switch self.streamType {
-      case .unary, .clientStreaming:
-        self.printUnaryResponse()
-
-      case .serverStreaming, .bidirectionalStreaming:
-        self.printStreamingResponse()
+      case .unary:
+          self.printUnaryResponse()
       }
     }
   }
@@ -409,14 +229,6 @@ extension Generator {
     self.printResponseStream(isUnary: true)
     self.println()
     self.printEnqueueUnaryResponse(isUnary: true)
-    self.println()
-    self.printHasResponseStreamEnqueued()
-  }
-
-  private func printStreamingResponse() {
-    self.printResponseStream(isUnary: false)
-    self.println()
-    self.printEnqueueUnaryResponse(isUnary: false)
     self.println()
     self.printHasResponseStreamEnqueued()
   }
@@ -493,52 +305,6 @@ extension Generator {
     }
     self.println("}")
   }
-
-  private func printTestClient() {
-    self.printIfCompilerGuardForAsyncAwait()
-    self.println("@available(swift, deprecated: 5.6)")
-    self.println("extension \(self.testClientClassName): @unchecked Sendable {}")
-    self.printEndCompilerGuardForAsyncAwait()
-    self.println()
-    self.println(
-      "@available(swift, deprecated: 5.6, message: \"Test clients are not Sendable "
-        + "but the 'GRPCClient' API requires clients to be Sendable. Using a localhost client and "
-        + "server is the recommended alternative.\")"
-    )
-    self.println(
-      "\(self.access) final class \(self.testClientClassName): \(self.clientProtocolName) {"
-    )
-    self.withIndentation {
-      self.println("private let fakeChannel: FakeChannel")
-      self.println("\(access) var defaultCallOptions: CallOptions")
-      self.println("\(access) var interceptors: \(clientInterceptorProtocolName)?")
-      self.println()
-      self.println("\(self.access) var channel: GRPCChannel {")
-      self.withIndentation {
-        self.println("return self.fakeChannel")
-      }
-      self.println("}")
-      self.println()
-
-      self.println("\(self.access) init(")
-      self.withIndentation {
-        self.println("fakeChannel: FakeChannel = FakeChannel(),")
-        self.println("defaultCallOptions callOptions: CallOptions = CallOptions(),")
-        self.println("interceptors: \(clientInterceptorProtocolName)? = nil")
-      }
-      self.println(") {")
-      self.withIndentation {
-        self.println("self.fakeChannel = fakeChannel")
-        self.println("self.defaultCallOptions = callOptions")
-        self.println("self.interceptors = interceptors")
-      }
-      self.println("}")
-
-      self.printFakeResponseStreams()
-    }
-
-    self.println("}") // end class
-  }
 }
 
 extension Generator {
@@ -554,21 +320,6 @@ extension Generator {
       return [
         "_ request: \(self.methodInputName)",
         "callOptions: HTTPCallOptions? = nil",
-      ]
-    case .serverStreaming: // TODO delete all below
-      return [
-        "_ request: \(self.methodInputName)",
-        "callOptions: CallOptions? = nil",
-        "handler: @escaping (\(methodOutputName)) -> Void",
-      ]
-
-    case .clientStreaming:
-      return ["callOptions: CallOptions? = nil"]
-
-    case .bidirectionalStreaming:
-      return [
-        "callOptions: CallOptions? = nil",
-        "handler: @escaping (\(methodOutputName)) -> Void",
       ]
     }
   }
@@ -594,15 +345,6 @@ extension Generator {
     switch self.streamType {
     case .unary:
       return "HTTPUnaryCall<\(self.methodInputName), \(self.methodOutputName)>"
-
-    case .serverStreaming:
-      return "ServerStreamingCall<\(self.methodInputName), \(self.methodOutputName)>"
-
-    case .clientStreaming:
-      return "ClientStreamingCall<\(self.methodInputName), \(self.methodOutputName)>"
-
-    case .bidirectionalStreaming:
-      return "BidirectionalStreamingCall<\(self.methodInputName), \(self.methodOutputName)>"
     }
   }
 }
@@ -612,12 +354,6 @@ extension StreamingType {
     switch self {
     case .unary:
       return "Unary"
-    case .clientStreaming:
-      return "Client streaming"
-    case .serverStreaming:
-      return "Server streaming"
-    case .bidirectionalStreaming:
-      return "Bidirectional streaming"
     }
   }
 }

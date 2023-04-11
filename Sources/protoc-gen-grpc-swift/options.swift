@@ -53,16 +53,12 @@ final class GeneratorOptions {
 
   private(set) var visibility = Visibility.internal
 
-  private(set) var generateServer = true
-
   private(set) var generateClient = true
-  private(set) var generateTestClient = false
 
   private(set) var keepMethodCasing = false
   private(set) var protoToModuleMappings = ProtoFileToModuleMappings()
   private(set) var fileNaming = FileNaming.FullPath
   private(set) var extraModuleImports: [String] = []
-  private(set) var gRPCModuleName = "GRPC"
   private(set) var swiftProtobufModuleName = "SwiftProtobuf"
   private(set) var libmobilecoinModuleName = "LibMobileCoin"
 
@@ -76,23 +72,9 @@ final class GeneratorOptions {
           throw GenerationError.invalidParameterValue(name: pair.key, value: pair.value)
         }
 
-      case "Server":
-        if let value = Bool(pair.value) {
-          self.generateServer = value
-        } else {
-          throw GenerationError.invalidParameterValue(name: pair.key, value: pair.value)
-        }
-
       case "Client":
         if let value = Bool(pair.value) {
           self.generateClient = value
-        } else {
-          throw GenerationError.invalidParameterValue(name: pair.key, value: pair.value)
-        }
-
-      case "TestClient":
-        if let value = Bool(pair.value) {
-          self.generateTestClient = value
         } else {
           throw GenerationError.invalidParameterValue(name: pair.key, value: pair.value)
         }
@@ -126,13 +108,6 @@ final class GeneratorOptions {
       case "ExtraModuleImports":
         if !pair.value.isEmpty {
           self.extraModuleImports.append(pair.value)
-        } else {
-          throw GenerationError.invalidParameterValue(name: pair.key, value: pair.value)
-        }
-
-      case "GRPCModuleName":
-        if !pair.value.isEmpty {
-          self.gRPCModuleName = pair.value
         } else {
           throw GenerationError.invalidParameterValue(name: pair.key, value: pair.value)
         }

@@ -15,27 +15,7 @@
  */
 
 enum Types {
-  static let serverContext = "GRPCAsyncServerCallContext"
-  static let serverHandler = "GRPCAsyncServerHandler"
-
-  static let clientCallOptions = "CallOptions"
-
   private static let unaryCall = "AsyncUnaryCall"
-  private static let clientStreamingCall = "AsyncClientStreamingCall"
-  private static let serverStreamingCall = "AsyncServerStreamingCall"
-  private static let bidirectionalStreamingCall = "AsyncBidirectionalStreamingCall"
-
-  static func requestStream(of type: String) -> String {
-    return "GRPCAsyncRequestStream<\(type)>"
-  }
-
-  static func responseStream(of type: String) -> String {
-    return "GRPCAsyncResponseStream<\(type)>"
-  }
-
-  static func responseStreamWriter(of type: String) -> String {
-    return "GRPCAsyncResponseStreamWriter<\(type)>"
-  }
 
   static func serializer(for type: String) -> String {
     return "ProtobufSerializer<\(type)>"
@@ -45,22 +25,16 @@ enum Types {
     return "ProtobufDeserializer<\(type)>"
   }
 
-  static func call(for streamingType: StreamingType, withGRPCPrefix: Bool = true) -> String {
+  static func call(for streamingType: StreamingType, withHTTPPrefix: Bool = true) -> String {
     let typeName: String
 
     switch streamingType {
     case .unary:
       typeName = Types.unaryCall
-    case .clientStreaming:
-      typeName = Types.clientStreamingCall
-    case .serverStreaming:
-      typeName = Types.serverStreamingCall
-    case .bidirectionalStreaming:
-      typeName = Types.bidirectionalStreamingCall
     }
 
-    if withGRPCPrefix {
-      return "GRPC" + typeName
+    if withHTTPPrefix {
+      return "HTTP" + typeName
     } else {
       return typeName
     }

@@ -78,40 +78,12 @@ extension Generator {
     return nameForPackageService(file, service) + "Provider"
   }
 
-  internal var asyncProviderName: String {
-    return nameForPackageService(file, service) + "AsyncProvider"
-  }
-
   internal var clientClassName: String {
     return nameForPackageService(file, service) + "RestClient"
   }
 
-  internal var clientStructName: String {
-    return nameForPackageService(file, service) + "NIOClient"
-  }
-
-  internal var asyncClientStructName: String {
-    return nameForPackageService(file, service) + "AsyncClient"
-  }
-
-  internal var testClientClassName: String {
-    return nameForPackageService(self.file, self.service) + "TestClient"
-  }
-
   internal var clientProtocolName: String {
     return nameForPackageService(file, service) + "RestClientProtocol"
-  }
-
-  internal var asyncClientProtocolName: String {
-    return nameForPackageService(file, service) + "AsyncClientProtocol"
-  }
-
-  internal var clientInterceptorProtocolName: String {
-    return nameForPackageService(file, service) + "ClientInterceptorFactoryProtocol"
-  }
-
-  internal var serverInterceptorProtocolName: String {
-    return nameForPackageService(file, service) + "ServerInterceptorFactoryProtocol"
   }
 
   internal var callName: String {
@@ -153,10 +125,6 @@ extension Generator {
 
   internal var methodOutputName: String {
     return protobufNamer.fullName(message: method.outputType)
-  }
-
-  internal var methodInterceptorFactoryName: String {
-    return "make\(self.method.name)Interceptors"
   }
 
   internal var servicePath: String {

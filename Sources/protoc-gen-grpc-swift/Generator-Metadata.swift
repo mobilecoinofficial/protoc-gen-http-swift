@@ -54,7 +54,7 @@ extension Generator {
           self.withIndentation {
             self.println("name: \(quoted(self.method.name)),")
             self.println("path: \(quoted(self.methodPath)),")
-            self.println("type: \(streamingType(self.method).asGRPCCallTypeCase)")
+            self.println("type: \(streamingType(self.method).asHTTPCallTypeCase)")
           }
           self.println(")")
 

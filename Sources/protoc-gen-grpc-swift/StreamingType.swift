@@ -17,38 +17,17 @@ import SwiftProtobufPluginLibrary
 
 internal enum StreamingType {
   case unary
-  case clientStreaming
-  case serverStreaming
-  case bidirectionalStreaming
 }
 
 extension StreamingType {
-  internal var asGRPCCallTypeCase: String {
+  internal var asHTTPCallTypeCase: String {
     switch self {
     case .unary:
       return "HTTPCallType.unary"
-    case .clientStreaming:
-      return "GRPCCallType.clientStreaming"
-    case .serverStreaming:
-      return "GRPCCallType.serverStreaming"
-    case .bidirectionalStreaming:
-      return "GRPCCallType.bidirectionalStreaming"
     }
   }
 }
 
 internal func streamingType(_ method: MethodDescriptor) -> StreamingType {
-  if method.clientStreaming {
-    if method.serverStreaming {
-      return .bidirectionalStreaming
-    } else {
-      return .clientStreaming
-    }
-  } else {
-    if method.serverStreaming {
-      return .serverStreaming
-    } else {
-      return .unary
-    }
-  }
+  .unary
 }

@@ -117,7 +117,7 @@ class Generator {
     //
 
     //
-    // Copyright 2018, gRPC Authors All rights reserved.
+    // Copyright 2023, MobileCoin Authors All rights reserved.
     //
     // Licensed under the Apache License, Version 2.0 (the "License");
     // you may not use this file except in compliance with the License.
@@ -155,13 +155,6 @@ class Generator {
       self.printClient()
     }
     self.println()
-
-    if self.options.generateServer {
-      for service in self.file.services {
-        self.service = service
-        printServer()
-      }
-    }
   }
 
   func printAvailabilityForAsyncAwait() {
