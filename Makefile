@@ -9,7 +9,7 @@ SWIFT_FLAGS_RELEASE=$(patsubst --configuration=%,--configuration=release,$(SWIFT
 
 # protoc plugins.
 PROTOC_GEN_SWIFT=${SWIFT_BUILD_PATH}/release/protoc-gen-swift
-PROTOC_GEN_GRPC_SWIFT=${SWIFT_BUILD_PATH}/release/protoc-gen-grpc-swift
+PROTOC_GEN_HTTP_SWIFT=${SWIFT_BUILD_PATH}/release/protoc-gen-http-swift
 
 SWIFT_BUILD:=${SWIFT} build ${SWIFT_FLAGS}
 SWIFT_BUILD_RELEASE:=${SWIFT} build ${SWIFT_FLAGS_RELEASE}
@@ -17,7 +17,7 @@ SWIFT_TEST:=${SWIFT} test ${SWIFT_FLAGS}
 SWIFT_PACKAGE:=${SWIFT} package ${SWIFT_FLAGS}
 
 # Name of generated xcodeproj
-XCODEPROJ:=GRPC.xcodeproj
+XCODEPROJ:=HTTP.xcodeproj
 
 ### Package and plugin build targets ###########################################
 
@@ -28,20 +28,20 @@ Package.resolved:
 	${SWIFT_PACKAGE} resolve
 
 .PHONY:
-plugins: ${PROTOC_GEN_SWIFT} ${PROTOC_GEN_GRPC_SWIFT}
+plugins: ${PROTOC_GEN_SWIFT} ${PROTOC_GEN_HTTP_SWIFT}
 	cp $^ .
 
 ${PROTOC_GEN_SWIFT}: Package.resolved
 	${SWIFT_BUILD_RELEASE} --product protoc-gen-swift
 
-${PROTOC_GEN_GRPC_SWIFT}: Sources/protoc-gen-grpc-swift/*.swift
-	${SWIFT_BUILD_RELEASE} --product protoc-gen-grpc-swift
+${PROTOC_GEN_HTTP_SWIFT}: Sources/protoc-gen-http-swift/*.swift
+	${SWIFT_BUILD_RELEASE} --product protoc-gen-http-swift
 
 interop-test-runner:
-	${SWIFT_BUILD} --product GRPCInteroperabilityTests
+	${SWIFT_BUILD} --product HTTPInteroperabilityTests
 
 interop-backoff-test-runner:
-	${SWIFT_BUILD} --product GRPCConnectionBackoffInteropTest
+	${SWIFT_BUILD} --product HTTPConnectionBackoffInteropTest
 
 ### Xcodeproj
 
@@ -50,7 +50,7 @@ project: ${XCODEPROJ}
 
 ${XCODEPROJ}:
 	${SWIFT_PACKAGE} generate-xcodeproj --output $@
-	@-ruby scripts/fix-project-settings.rb GRPC.xcodeproj || \
+	@-ruby scripts/fix-project-settings.rb HTTP.xcodeproj || \
 		echo "Consider running 'sudo gem install xcodeproj' to automatically set correct indentation settings for the generated project."
 
 ### Protobuf Generation ########################################################
@@ -62,60 +62,60 @@ ${XCODEPROJ}:
 		--swift_opt=Visibility=Public \
 		--swift_out=$(dir $<)
 
-%.grpc.swift: %.proto ${PROTOC_GEN_GRPC_SWIFT}
+%.http.swift: %.proto ${PROTOC_GEN_HTTP_SWIFT}
 	protoc $< \
 		--proto_path=$(dir $<) \
-		--plugin=${PROTOC_GEN_GRPC_SWIFT} \
-		--grpc-swift_opt=Visibility=Public \
-		--grpc-swift_out=$(dir $<)
+		--plugin=${PROTOC_GEN_HTTP_SWIFT} \
+		--http-swift_opt=Visibility=Public \
+		--http-swift_out=$(dir $<)
 
 ECHO_PROTO=Sources/Examples/Echo/Model/echo.proto
 ECHO_PB=$(ECHO_PROTO:.proto=.pb.swift)
-ECHO_GRPC=$(ECHO_PROTO:.proto=.grpc.swift)
+ECHO_HTTP=$(ECHO_PROTO:.proto=.http.swift)
 
 # For Echo we'll generate the test client as well.
-${ECHO_GRPC}: ${ECHO_PROTO} ${PROTOC_GEN_GRPC_SWIFT}
+${ECHO_HTTP}: ${ECHO_PROTO} ${PROTOC_GEN_HTTP_SWIFT}
 	protoc $< \
 		--proto_path=$(dir $<) \
-		--plugin=${PROTOC_GEN_GRPC_SWIFT} \
-		--grpc-swift_opt=Visibility=Public,TestClient=true \
-		--grpc-swift_out=$(dir $<)
+		--plugin=${PROTOC_GEN_HTTP_SWIFT} \
+		--http-swift_opt=Visibility=Public,TestClient=true \
+		--http-swift_out=$(dir $<)
 
-# Generates protobufs and gRPC client and server for the Echo example
+# Generates protobufs and http client and server for the Echo example
 .PHONY:
-generate-echo: ${ECHO_PB} ${ECHO_GRPC}
+generate-echo: ${ECHO_PB} ${ECHO_HTTP}
 
 HELLOWORLD_PROTO=Sources/Examples/HelloWorld/Model/helloworld.proto
 HELLOWORLD_PB=$(HELLOWORLD_PROTO:.proto=.pb.swift)
-HELLOWORLD_GRPC=$(HELLOWORLD_PROTO:.proto=.grpc.swift)
+HELLOWORLD_HTTP=$(HELLOWORLD_PROTO:.proto=.http.swift)
 
-# Generates protobufs and gRPC client and server for the Hello World example
+# Generates protobufs and http client and server for the Hello World example
 .PHONY:
-generate-helloworld: ${HELLOWORLD_PB} ${HELLOWORLD_GRPC}
+generate-helloworld: ${HELLOWORLD_PB} ${HELLOWORLD_HTTP}
 
 ROUTE_GUIDE_PROTO=Sources/Examples/RouteGuide/Model/route_guide.proto
 ROUTE_GUIDE_PB=$(ROUTE_GUIDE_PROTO:.proto=.pb.swift)
-ROUTE_GUIDE_GRPC=$(ROUTE_GUIDE_PROTO:.proto=.grpc.swift)
+ROUTE_GUIDE_HTTP=$(ROUTE_GUIDE_PROTO:.proto=.http.swift)
 
-# Generates protobufs and gRPC client and server for the Route Guide example
+# Generates protobufs and http client and server for the Route Guide example
 .PHONY:
-generate-route-guide: ${ROUTE_GUIDE_PB} ${ROUTE_GUIDE_GRPC}
+generate-route-guide: ${ROUTE_GUIDE_PB} ${ROUTE_GUIDE_HTTP}
 
-NORMALIZATION_PROTO=Tests/GRPCTests/Codegen/Normalization/normalization.proto
+NORMALIZATION_PROTO=Tests/HTTPTests/Codegen/Normalization/normalization.proto
 NORMALIZATION_PB=$(NORMALIZATION_PROTO:.proto=.pb.swift)
-NORMALIZATION_GRPC=$(NORMALIZATION_PROTO:.proto=.grpc.swift)
+NORMALIZATION_HTTP=$(NORMALIZATION_PROTO:.proto=.http.swift)
 
 # For normalization we'll explicitly keep the method casing.
-${NORMALIZATION_GRPC}: ${NORMALIZATION_PROTO} ${PROTOC_GEN_GRPC_SWIFT}
+${NORMALIZATION_HTTP}: ${NORMALIZATION_PROTO} ${PROTOC_GEN_HTTP_SWIFT}
 	protoc $< \
 		--proto_path=$(dir $<) \
-		--plugin=${PROTOC_GEN_GRPC_SWIFT} \
-		--grpc-swift_opt=KeepMethodCasing=true \
-		--grpc-swift_out=$(dir $<)
+		--plugin=${PROTOC_GEN_HTTP_SWIFT} \
+		--http-swift_opt=KeepMethodCasing=true \
+		--http-swift_out=$(dir $<)
 
-# Generates protobufs and gRPC client and server for the Route Guide example
+# Generates protobufs and http client and server for the Route Guide example
 .PHONY:
-generate-normalization: ${NORMALIZATION_PB} ${NORMALIZATION_GRPC}
+generate-normalization: ${NORMALIZATION_PB} ${NORMALIZATION_HTTP}
 
 ### Testing ####################################################################
 
@@ -131,8 +131,8 @@ test-tsan:
 
 # Runs codegen tests.
 .PHONY:
-test-plugin: ${PROTOC_GEN_GRPC_SWIFT}
-	PROTOC_GEN_GRPC_SWIFT=${PROTOC_GEN_GRPC_SWIFT} ./dev/codegen-tests/run-tests.sh
+test-plugin: ${PROTOC_GEN_HTTP_SWIFT}
+	PROTOC_GEN_HTTP_SWIFT=${PROTOC_GEN_HTTP_SWIFT} ./dev/codegen-tests/run-tests.sh
 
 ### Misc. ######################################################################
 

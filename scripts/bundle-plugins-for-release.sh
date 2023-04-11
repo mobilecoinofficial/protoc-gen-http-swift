@@ -16,15 +16,13 @@
 
 set -eu
 
-# This script bundles up the gRPC and Protobuf protoc plugins into a zip file
-# suitable for the 'gRPC-Swift-Plugins' CocoaPod.
+# This script bundles up the protoc-gen-http-swift protoc plugin into a zip file
 #
 # The contents of thie zip should look like this:
 #
 #   ├── LICENSE
 #   └── bin
-#       ├── protoc-gen-grpc-swift
-#       └── protoc-gen-swift
+#       └── protoc-gen-http-swift
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 RELEASE_VERSION"
@@ -32,7 +30,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 version=$1
-zipfile="protoc-grpc-swift-plugins-${version}.zip"
+zipfile="protoc-http-swift-plugins-${version}.zip"
 
 # Where are we?
 here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -45,13 +43,11 @@ stage_bin="${stage}/bin"
 mkdir -p "${stage_bin}"
 
 # Make the plugins.
-swift build -c release --arch arm64 --arch x86_64 --product protoc-gen-grpc-swift
-swift build -c release --arch arm64 --arch x86_64 --product protoc-gen-swift
+swift build -c release --arch arm64 --arch x86_64 --product protoc-gen-http-swift
 binpath=$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
 
 # Copy them to the stage.
-cp "${binpath}/protoc-gen-grpc-swift" "${stage_bin}"
-cp "${binpath}/protoc-gen-swift" "${stage_bin}"
+cp "${binpath}/protoc-gen-http-swift" "${stage_bin}"
 
 # Copy the LICENSE to the stage.
 cp "${root}/LICENSE" "${stage}"
