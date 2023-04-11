@@ -134,9 +134,7 @@ class Generator {
     """)
 
     let moduleNames = [
-      self.options.gRPCModuleName,
-      "NIO",
-      "NIOConcurrencyHelpers",
+      self.options.libmobilecoinModuleName,
       self.options.swiftProtobufModuleName,
     ]
 

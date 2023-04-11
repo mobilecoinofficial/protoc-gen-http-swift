@@ -139,7 +139,7 @@ func main(args: [String]) throws {
     if let fileDescriptor = descriptorSet.fileDescriptor(named: name),
        !fileDescriptor.services.isEmpty {
       let grpcFileName = uniqueOutputFileName(
-        component: "grpc",
+        component: "http",
         fileDescriptor: fileDescriptor,
         fileNamingOption: options.fileNaming,
         generatedFiles: &generatedFiles

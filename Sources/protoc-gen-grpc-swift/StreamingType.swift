@@ -26,7 +26,7 @@ extension StreamingType {
   internal var asGRPCCallTypeCase: String {
     switch self {
     case .unary:
-      return "GRPCCallType.unary"
+      return "HTTPCallType.unary"
     case .clientStreaming:
       return "GRPCCallType.clientStreaming"
     case .serverStreaming:

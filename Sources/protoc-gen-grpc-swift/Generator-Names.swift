@@ -83,7 +83,7 @@ extension Generator {
   }
 
   internal var clientClassName: String {
-    return nameForPackageService(file, service) + "Client"
+    return nameForPackageService(file, service) + "RestClient"
   }
 
   internal var clientStructName: String {
@@ -99,7 +99,7 @@ extension Generator {
   }
 
   internal var clientProtocolName: String {
-    return nameForPackageService(file, service) + "ClientProtocol"
+    return nameForPackageService(file, service) + "RestClientProtocol"
   }
 
   internal var asyncClientProtocolName: String {

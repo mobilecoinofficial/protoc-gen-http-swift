@@ -26,22 +26,22 @@ extension Generator {
       self.printClientProtocolExtension()
       self.println()
       self.printClassBackedServiceClientImplementation()
-      self.println()
-      self.printStructBackedServiceClientImplementation()
-      self.println()
-      self.printIfCompilerGuardForAsyncAwait()
-      self.printAsyncServiceClientProtocol()
-      self.println()
-      self.printAsyncClientProtocolExtension()
-      self.println()
-      self.printAsyncClientProtocolSafeWrappersExtension()
-      self.println()
-      self.printAsyncServiceClientImplementation()
-      self.println()
-      self.printEndCompilerGuardForAsyncAwait()
-      self.println()
-      // Both implementations share definitions for interceptors and metadata.
-      self.printServiceClientInterceptorFactoryProtocol()
+//      self.println()
+//      self.printStructBackedServiceClientImplementation()
+//      self.println()
+//      self.printIfCompilerGuardForAsyncAwait()
+//      self.printAsyncServiceClientProtocol()
+//      self.println()
+//      self.printAsyncClientProtocolExtension()
+//      self.println()
+//      self.printAsyncClientProtocolSafeWrappersExtension()
+//      self.println()
+//      self.printAsyncServiceClientImplementation()
+//      self.println()
+//      self.printEndCompilerGuardForAsyncAwait()
+//      self.println()
+//      // Both implementations share definitions for interceptors and metadata.
+//      self.printServiceClientInterceptorFactoryProtocol()
       self.println()
       self.printClientMetadata()
     }
@@ -120,10 +120,10 @@ extension Generator {
     self.println(
       "/// Usage: instantiate `\(self.clientClassName)`, then call methods of this protocol to make API calls."
     )
-    self.println("\(self.access) protocol \(self.clientProtocolName): GRPCClient {")
+    self.println("\(self.access) protocol \(self.clientProtocolName): HTTPClient {")
     self.withIndentation {
       self.println("var serviceName: String { get }")
-      self.println("var interceptors: \(self.clientInterceptorProtocolName)? { get }")
+//      self.println("var interceptors: \(self.clientInterceptorProtocolName)? { get }")
 
       for method in service.methods {
         self.println()
@@ -189,51 +189,23 @@ extension Generator {
   }
 
   private func printClassBackedServiceClientImplementation() {
-    self.printIfCompilerGuardForAsyncAwait()
-    self.println("@available(*, deprecated)")
-    self.println("extension \(clientClassName): @unchecked Sendable {}")
-    self.printEndCompilerGuardForAsyncAwait()
-    self.println()
-    self.println("@available(*, deprecated, renamed: \"\(clientStructName)\")")
     println("\(access) final class \(clientClassName): \(clientProtocolName) {")
     self.withIndentation {
-      println("private let lock = Lock()")
-      println("private var _defaultCallOptions: CallOptions")
-      println("private var _interceptors: \(clientInterceptorProtocolName)?")
-
-      println("\(access) let channel: GRPCChannel")
-      println("\(access) var defaultCallOptions: CallOptions {")
-      self.withIndentation {
-        println("get { self.lock.withLock { return self._defaultCallOptions } }")
-        println("set { self.lock.withLockVoid { self._defaultCallOptions = newValue } }")
-      }
-      self.println("}")
-      println("\(access) var interceptors: \(clientInterceptorProtocolName)? {")
-      self.withIndentation {
-        println("get { self.lock.withLock { return self._interceptors } }")
-        println("set { self.lock.withLockVoid { self._interceptors = newValue } }")
-      }
-      println("}")
+      println("\(access) var defaultHTTPCallOptions: HTTPCallOptions")
       println()
       println("/// Creates a client for the \(servicePath) service.")
       println("///")
       self.printParameters()
-      println("///   - channel: `GRPCChannel` to the service host.")
       println(
-        "///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them."
+        "///   - defaultHTTPCallOptions: Options to use for each service call if the user doesn't provide them."
       )
-      println("///   - interceptors: A factory providing interceptors for each RPC.")
       println("\(access) init(")
       self.withIndentation {
-        println("channel: GRPCChannel,")
-        println("defaultCallOptions: CallOptions = CallOptions(),")
-        println("interceptors: \(clientInterceptorProtocolName)? = nil")
+        println("defaultHTTPCallOptions: HTTPCallOptions = HTTPCallOptions()")
       }
       self.println(") {")
       self.withIndentation {
-        println("self.channel = channel")
-        println("self._defaultCallOptions = defaultCallOptions")
-        println("self._interceptors = interceptors")
+        println("self.defaultHTTPCallOptions = defaultHTTPCallOptions")
       }
       self.println("}")
     }
@@ -243,29 +215,21 @@ extension Generator {
   private func printStructBackedServiceClientImplementation() {
     println("\(access) struct \(clientStructName): \(clientProtocolName) {")
     self.withIndentation {
-      println("\(access) var channel: GRPCChannel")
-      println("\(access) var defaultCallOptions: CallOptions")
-      println("\(access) var interceptors: \(clientInterceptorProtocolName)?")
+      println("\(access) var defaultHTTPCallOptions: HTTPCallOptions")
       println()
       println("/// Creates a client for the \(servicePath) service.")
       println("///")
       self.printParameters()
-      println("///   - channel: `GRPCChannel` to the service host.")
       println(
-        "///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them."
+        "///   - defaultHTTPCallOptions: Options to use for each service call if the user doesn't provide them."
       )
-      println("///   - interceptors: A factory providing interceptors for each RPC.")
       println("\(access) init(")
       self.withIndentation {
-        println("channel: GRPCChannel,")
-        println("defaultCallOptions: CallOptions = CallOptions(),")
-        println("interceptors: \(clientInterceptorProtocolName)? = nil")
+        println("defaultHTTPCallOptions: HTTPCallOptions = HTTPCallOptions()")
       }
       self.println(") {")
       self.withIndentation {
-        println("self.channel = channel")
-        println("self.defaultCallOptions = defaultCallOptions")
-        println("self.interceptors = interceptors")
+        println("self.defaultHTTPCallOptions = defaultHTTPCallOptions")
       }
       self.println("}")
     }
@@ -310,10 +274,7 @@ extension Generator {
       self.withIndentation {
         self.println("path: \(self.methodPathUsingClientMetadata),")
         self.println("request: request,")
-        self.println("callOptions: callOptions ?? self.defaultCallOptions,")
-        self.println(
-          "interceptors: self.interceptors?.\(self.methodInterceptorFactoryName)() ?? []"
-        )
+        self.println("callOptions: callOptions ?? self.defaultHTTPCallOptions")
       }
       self.println(")")
     }
@@ -592,9 +553,9 @@ extension Generator {
     case .unary:
       return [
         "_ request: \(self.methodInputName)",
-        "callOptions: CallOptions? = nil",
+        "callOptions: HTTPCallOptions? = nil",
       ]
-    case .serverStreaming:
+    case .serverStreaming: // TODO delete all below
       return [
         "_ request: \(self.methodInputName)",
         "callOptions: CallOptions? = nil",
@@ -615,8 +576,8 @@ extension Generator {
   private var methodArgumentsWithoutDefaults: [String] {
     return self.methodArguments.map { arg in
       // Remove default arg from call options.
-      if arg == "callOptions: CallOptions? = nil" {
-        return "callOptions: CallOptions?"
+      if arg == "callOptions: HTTPCallOptions? = nil" {
+        return "callOptions: HTTPCallOptions?"
       } else {
         return arg
       }
@@ -632,7 +593,7 @@ extension Generator {
   private var methodReturnType: String {
     switch self.streamType {
     case .unary:
-      return "UnaryCall<\(self.methodInputName), \(self.methodOutputName)>"
+      return "HTTPUnaryCall<\(self.methodInputName), \(self.methodOutputName)>"
 
     case .serverStreaming:
       return "ServerStreamingCall<\(self.methodInputName), \(self.methodOutputName)>"
