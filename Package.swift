@@ -110,13 +110,3 @@ let package = Package(
     .httpSwiftPlugin,
   ]
 )
-
-extension Array {
-  func appending(_ element: Element, if condition: Bool) -> [Element] {
-    if condition {
-      return self + [element]
-    } else {
-      return self
-    }
-  }
-}
