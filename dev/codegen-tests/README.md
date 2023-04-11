@@ -26,5 +26,5 @@ Individual tests can be run by invoking the `generate-and-diff.sh` script in
 the relevant test directory:
 
 ```bash
-./01-echo/generate-and-diff.sh
+./01-libmobilecoin/generate-and-diff.sh
 ```
