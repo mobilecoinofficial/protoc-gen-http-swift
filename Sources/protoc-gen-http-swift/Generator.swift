@@ -134,7 +134,6 @@ class Generator {
     """)
 
     let moduleNames = [
-      self.options.libmobilecoinModuleName,
       self.options.swiftProtobufModuleName,
     ]
 

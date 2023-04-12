@@ -60,7 +60,6 @@ final class GeneratorOptions {
   private(set) var fileNaming = FileNaming.FullPath
   private(set) var extraModuleImports: [String] = []
   private(set) var swiftProtobufModuleName = "SwiftProtobuf"
-  private(set) var libmobilecoinModuleName = "LibMobileCoin"
 
   init(parameter: String?) throws {
     for pair in GeneratorOptions.parseParameter(string: parameter) {
