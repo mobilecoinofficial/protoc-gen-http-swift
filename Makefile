@@ -37,12 +37,6 @@ ${PROTOC_GEN_SWIFT}: Package.resolved
 ${PROTOC_GEN_HTTP_SWIFT}: Sources/protoc-gen-http-swift/*.swift
 	${SWIFT_BUILD_RELEASE} --product protoc-gen-http-swift
 
-interop-test-runner:
-	${SWIFT_BUILD} --product HTTPInteroperabilityTests
-
-interop-backoff-test-runner:
-	${SWIFT_BUILD} --product HTTPConnectionBackoffInteropTest
-
 ### Xcodeproj
 
 .PHONY:
@@ -69,65 +63,7 @@ ${XCODEPROJ}:
 		--http-swift_opt=Visibility=Public \
 		--http-swift_out=$(dir $<)
 
-ECHO_PROTO=Sources/Examples/Echo/Model/echo.proto
-ECHO_PB=$(ECHO_PROTO:.proto=.pb.swift)
-ECHO_HTTP=$(ECHO_PROTO:.proto=.http.swift)
-
-# For Echo we'll generate the test client as well.
-${ECHO_HTTP}: ${ECHO_PROTO} ${PROTOC_GEN_HTTP_SWIFT}
-	protoc $< \
-		--proto_path=$(dir $<) \
-		--plugin=${PROTOC_GEN_HTTP_SWIFT} \
-		--http-swift_opt=Visibility=Public,TestClient=true \
-		--http-swift_out=$(dir $<)
-
-# Generates protobufs and http client and server for the Echo example
-.PHONY:
-generate-echo: ${ECHO_PB} ${ECHO_HTTP}
-
-HELLOWORLD_PROTO=Sources/Examples/HelloWorld/Model/helloworld.proto
-HELLOWORLD_PB=$(HELLOWORLD_PROTO:.proto=.pb.swift)
-HELLOWORLD_HTTP=$(HELLOWORLD_PROTO:.proto=.http.swift)
-
-# Generates protobufs and http client and server for the Hello World example
-.PHONY:
-generate-helloworld: ${HELLOWORLD_PB} ${HELLOWORLD_HTTP}
-
-ROUTE_GUIDE_PROTO=Sources/Examples/RouteGuide/Model/route_guide.proto
-ROUTE_GUIDE_PB=$(ROUTE_GUIDE_PROTO:.proto=.pb.swift)
-ROUTE_GUIDE_HTTP=$(ROUTE_GUIDE_PROTO:.proto=.http.swift)
-
-# Generates protobufs and http client and server for the Route Guide example
-.PHONY:
-generate-route-guide: ${ROUTE_GUIDE_PB} ${ROUTE_GUIDE_HTTP}
-
-NORMALIZATION_PROTO=Tests/HTTPTests/Codegen/Normalization/normalization.proto
-NORMALIZATION_PB=$(NORMALIZATION_PROTO:.proto=.pb.swift)
-NORMALIZATION_HTTP=$(NORMALIZATION_PROTO:.proto=.http.swift)
-
-# For normalization we'll explicitly keep the method casing.
-${NORMALIZATION_HTTP}: ${NORMALIZATION_PROTO} ${PROTOC_GEN_HTTP_SWIFT}
-	protoc $< \
-		--proto_path=$(dir $<) \
-		--plugin=${PROTOC_GEN_HTTP_SWIFT} \
-		--http-swift_opt=KeepMethodCasing=true \
-		--http-swift_out=$(dir $<)
-
-# Generates protobufs and http client and server for the Route Guide example
-.PHONY:
-generate-normalization: ${NORMALIZATION_PB} ${NORMALIZATION_HTTP}
-
 ### Testing ####################################################################
-
-# Normal test suite.
-.PHONY:
-test:
-	${SWIFT_TEST}
-
-# Normal test suite with TSAN enabled.
-.PHONY:
-test-tsan:
-	${SWIFT_TEST} --sanitize=thread
 
 # Runs codegen tests.
 .PHONY:
@@ -142,4 +78,3 @@ clean:
 	-rm -rf ${SWIFT_BUILD_PATH}
 	-rm -rf ${XCODEPROJ}
 	-rm -f Package.resolved
-	-cd Examples/Google/NaturalLanguage && make clean
