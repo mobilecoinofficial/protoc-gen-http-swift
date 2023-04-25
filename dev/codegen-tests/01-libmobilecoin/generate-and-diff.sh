@@ -28,6 +28,7 @@ function all_at_once {
     --plugin="${PROTOC_GEN_HTTP_SWIFT}" \
     --http-swift_out="${OUTPUT_DIR}" \
     --http-swift_opt=Client=true,Visibility=Public \
+    --http-swift_opt=ExtraModuleImports=LibMobileCoinCommon \
     --proto_path="${PROTO_DIR}" \
     -I "${PROTO_DIR}"/api/proto \
     -I "${PROTO_DIR}"/attest/api/proto \
