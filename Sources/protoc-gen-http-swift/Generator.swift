@@ -138,7 +138,9 @@ class Generator {
     ]
 
     for moduleName in (moduleNames + self.options.extraModuleImports).sorted() {
+      self.println("#if canImport(\(moduleName))")
       self.println("import \(moduleName)")
+      self.println("#endif")
     }
     // Add imports for required modules
     let moduleMappings = self.options.protoToModuleMappings
